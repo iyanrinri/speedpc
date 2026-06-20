@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeedPC Unified Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Top Navigation -->
+        <nav class="top-nav glass-card">
+            <div class="nav-brand">
+                <h2>SpeedPC<span>.</span></h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link active" data-target="home-section"><i class="fa-solid fa-house"></i> Home</a></li>
+                <li><a href="#" class="nav-link" data-target="network-section"><i class="fa-solid fa-network-wired"></i> Network Traffic</a></li>
+                <li><a href="#" class="nav-link" data-target="usb-section"><i class="fa-solid fa-hard-drive"></i> USB Speed Monitor</a></li>
+                <li><a href="#" class="nav-link" data-target="glances-section"><i class="fa-solid fa-desktop"></i> System Monitor</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Home Section -->
+            <section id="home-section" class="content-section active glass-card">
+                <div class="hero-content">
+                    <h1>Welcome to SpeedPC</h1>
+                    <p class="subtitle">Your unified system monitoring dashboard.</p>
+                    
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <h3><i class="fa-solid fa-network-wired"></i> Real-time Network</h3>
+                            <p>Monitor your internet bandwidth, upload, and download speeds continuously.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3><i class="fa-solid fa-hard-drive"></i> USB Benchmarking</h3>
+                            <p>Automatically detect and test the read/write performance of connected USB drives.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3><i class="fa-solid fa-microchip"></i> Deep System Stats</h3>
+                            <p>Access CPU, RAM, and internal process metrics powered by Glances.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Network Monitor Section -->
+            <section id="network-section" class="content-section glass-card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-network-wired"></i> Network Traffic</h2>
+                    <div class="status-badge" id="net-status">Monitoring</div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <span class="label"><i class="fa-solid fa-download"></i> Download</span>
+                        <span class="value rx-color" id="rx-speed">0 MB/s</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="label"><i class="fa-solid fa-upload"></i> Upload</span>
+                        <span class="value tx-color" id="tx-speed">0 MB/s</span>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+            </section>
+
+            <!-- USB Monitor Section -->
+            <section id="usb-section" class="content-section glass-card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-hard-drive"></i> USB Devices</h2>
+                    <button id="refresh-usb" class="btn-primary"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
+                
+                <div id="usb-testing-indicator" class="hidden">
+                    <div class="spinner"></div>
+                    <p>Testing speeds... <span id="usb-progress"></span></p>
+                </div>
+
+                <div id="usb-list" class="usb-list">
+                    <div class="placeholder-text">Waiting for data...</div>
+                </div>
+            </section>
+
+            <!-- Glances Section -->
+            <section id="glances-section" class="content-section glass-card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-desktop"></i> System Monitor (Glances)</h2>
+                </div>
+                <div class="iframe-container">
+                    <iframe id="glances-frame" src="http://localhost:61208" title="Glances System Monitor"></iframe>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

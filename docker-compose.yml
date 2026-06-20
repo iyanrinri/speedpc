@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  glances:
+    build:
+      context: ./glances
+      dockerfile: Dockerfile
+    container_name: speedpc_glances
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    environment:
+      - GLANCES_OPT=-w
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  dashboard:
+    build:
+      context: ./unified-dashboard
+      dockerfile: Dockerfile
+    container_name: speedpc_dashboard
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    volumes:
+      - /dev:/dev
+      - /media:/media:rshared
+      - /mnt:/mnt:rshared
+      # Also mount /sys to help drivelist/udev detect block devices properly
+      - /sys:/sys:ro
+      - /run/udev:/run/udev:ro

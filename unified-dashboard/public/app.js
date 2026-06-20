@@ -1,0 +1,158 @@
+const socket = io();
+
+// ==================== NAVIGATION LOGIC ====================
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = document.querySelectorAll('.content-section');
+
+navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Remove active class from all links and sections
+        navLinks.forEach(l => l.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+        
+        // Add active class to clicked link and target section
+        link.classList.add('active');
+        const targetId = link.getAttribute('data-target');
+        document.getElementById(targetId).classList.add('active');
+    });
+});
+
+// ==================== NETWORK CHART ====================
+const ctx = document.getElementById('trafficChart').getContext('2d');
+const trafficChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        datasets: [
+            {
+                label: 'Download (RX)',
+                borderColor: '#0ea5e9',
+                backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+                data: []
+            },
+            {
+                label: 'Upload (TX)',
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                tension: 0.4,
+                data: []
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+            legend: {
+                labels: { color: '#f8fafc' }
+            }
+        },
+        scales: {
+            x: {
+                type: 'time',
+                time: { tooltipFormat: 'HH:mm:ss' },
+                grid: { color: 'rgba(255,255,255,0.05)' },
+                ticks: { color: '#94a3b8' }
+            },
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255,255,255,0.05)' },
+                ticks: {
+                    color: '#94a3b8',
+                    callback: function(value) {
+                        return (value / (1024 * 1024)).toFixed(1) + ' MB/s';
+                    }
+                }
+            }
+        }
+    }
+});
+
+function formatSpeed(bytesPerSec) {
+    if (bytesPerSec === 0) return '0 MB/s';
+    const mbps = bytesPerSec / (1024 * 1024);
+    return mbps.toFixed(2) + ' MB/s';
+}
+
+socket.on('traffic-data', (data) => {
+    document.getElementById('rx-speed').textContent = formatSpeed(data.rx);
+    document.getElementById('tx-speed').textContent = formatSpeed(data.tx);
+
+    const now = new Date(data.timestamp);
+    trafficChart.data.datasets[0].data.push({ x: now, y: data.rx });
+    trafficChart.data.datasets[1].data.push({ x: now, y: data.tx });
+
+    const timeWindow = 60 * 1000; // 1 minute
+    const cutoff = now.getTime() - timeWindow;
+    trafficChart.data.datasets.forEach(dataset => {
+        dataset.data = dataset.data.filter(point => point.x.getTime() > cutoff);
+    });
+
+    trafficChart.update('none');
+});
+
+// ==================== USB DEVICES ====================
+const usbListEl = document.getElementById('usb-list');
+const testingIndicator = document.getElementById('usb-testing-indicator');
+const progressEl = document.getElementById('usb-progress');
+const refreshBtn = document.getElementById('refresh-usb');
+
+function renderUsbList(drives) {
+    if (!drives || drives.length === 0) {
+        usbListEl.innerHTML = '<div class="placeholder-text">No USB devices detected.</div>';
+        return;
+    }
+
+    usbListEl.innerHTML = drives.map(drive => `
+        <div class="usb-item">
+            <div class="usb-header">
+                <span class="usb-title"><i class="fa-brands fa-usb"></i> ${drive.name} (${drive.label})</span>
+                <span class="usb-capacity">${drive.capacity}</span>
+            </div>
+            <div class="usb-speeds">
+                <div class="usb-speed-box">
+                    <span class="speed-label">Read Speed</span>
+                    <span class="speed-val rx-color">${drive.readSpeed} MB/s</span>
+                </div>
+                <div class="usb-speed-box">
+                    <span class="speed-label">Write Speed</span>
+                    <span class="speed-val tx-color">${drive.writeSpeed} MB/s</span>
+                </div>
+            </div>
+            <div class="usb-last-updated">Last tested: ${new Date(drive.lastUpdated).toLocaleString()}</div>
+        </div>
+    `).join('');
+}
+
+socket.on('usbStatus', (data) => {
+    renderUsbList(data);
+});
+
+socket.on('testing', (isTesting) => {
+    if (isTesting) {
+        testingIndicator.classList.remove('hidden');
+        refreshBtn.disabled = true;
+        refreshBtn.style.opacity = '0.5';
+    } else {
+        testingIndicator.classList.add('hidden');
+        refreshBtn.disabled = false;
+        refreshBtn.style.opacity = '1';
+    }
+});
+
+socket.on('testing_progress', (data) => {
+    progressEl.textContent = `(${data.completed}/${data.total})`;
+});
+
+refreshBtn.addEventListener('click', () => {
+    socket.emit('requestRefresh');
+});
