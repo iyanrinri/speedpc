@@ -75,10 +75,25 @@
             </section>
 
             <!-- USB Monitor Section -->
-            <section id="usb-section" class="content-section glass-card">
+            <section id="usb-section" class="content-section">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-hard-drive"></i> USB Devices</h2>
-                    <button id="refresh-usb" class="btn-primary"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                    <div class="usb-actions">
+                        <div class="search-box">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Search by label...">
+                        </div>
+                        <button id="refresh-usb" class="btn-primary"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                    </div>
+                </div>
+
+                <div class="speed-reference-strip">
+                    <span class="ref-label">Speed Reference:</span>
+                    <span class="ref-badge">Class 4/6: <b>4-6 MB/s</b></span>
+                    <span class="ref-badge">Class 10/U1: <b>10 MB/s</b></span>
+                    <span class="ref-badge">U3/V30: <b>30 MB/s</b></span>
+                    <span class="ref-badge">V60: <b>60 MB/s</b></span>
+                    <span class="ref-badge">V90: <b>90 MB/s</b></span>
                 </div>
                 
                 <div id="usb-testing-indicator" class="hidden">
@@ -97,7 +112,7 @@
                     <h2><i class="fa-solid fa-desktop"></i> System Monitor (Glances)</h2>
                 </div>
                 <div class="iframe-container">
-                    <iframe id="glances-frame" src="http://localhost:61208" title="Glances System Monitor"></iframe>
+                    <iframe id="glances-frame" src="" title="Glances System Monitor"></iframe>
                 </div>
             </section>
 

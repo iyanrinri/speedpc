@@ -10,8 +10,9 @@ WORKDIR /app
 COPY package*.json ./
 
 # Force build from source so sqlite3 and drivelist compile against the container's GLIBC (fixes GLIBC_2.38 not found)
-RUN npm install --build-from-source sqlite3 drivelist
-RUN npm install
+# We add --loglevel=error to hide deprecated warnings from unmaintained libraries like prebuild-install in drivelist
+RUN npm install --build-from-source --loglevel=error sqlite3 drivelist
+RUN npm install --loglevel=error
 
 COPY . .
 

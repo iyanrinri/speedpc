@@ -19,6 +19,12 @@ navLinks.forEach(link => {
     });
 });
 
+// Dynamically set Glances iframe URL based on the current host
+const glancesFrame = document.getElementById('glances-frame');
+const host = window.location.hostname;
+const protocol = window.location.protocol;
+glancesFrame.src = `${protocol}//${host}:61208`;
+
 // ==================== NETWORK CHART ====================
 const ctx = document.getElementById('trafficChart').getContext('2d');
 const trafficChart = new Chart(ctx, {
@@ -105,6 +111,9 @@ const usbListEl = document.getElementById('usb-list');
 const testingIndicator = document.getElementById('usb-testing-indicator');
 const progressEl = document.getElementById('usb-progress');
 const refreshBtn = document.getElementById('refresh-usb');
+const searchInput = document.getElementById('searchInput');
+
+let allDrives = [];
 
 function renderUsbList(drives) {
     if (!drives || drives.length === 0) {
@@ -133,8 +142,22 @@ function renderUsbList(drives) {
     `).join('');
 }
 
+function filterAndRender() {
+    const query = searchInput.value.toLowerCase();
+    const filtered = allDrives.filter(d => 
+        (d.name && d.name.toLowerCase().includes(query)) || 
+        (d.label && d.label.toLowerCase().includes(query))
+    );
+    renderUsbList(filtered);
+}
+
 socket.on('usbStatus', (data) => {
-    renderUsbList(data);
+    allDrives = data;
+    filterAndRender();
+});
+
+searchInput.addEventListener('input', () => {
+    filterAndRender();
 });
 
 socket.on('testing', (isTesting) => {
