@@ -128,7 +128,7 @@ function renderUsbList(drives) {
         let cardHtml = `
             <div class="usb-card">
                 <div class="usb-header">
-                    <i class="fa-solid fa-usb"></i>
+                    <i class="fa-brands fa-usb"></i>
                     <div>
                         <div class="usb-name" title="${drive.label}">${drive.label || 'Unnamed USB'}</div>
                     </div>

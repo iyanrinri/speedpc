@@ -348,7 +348,7 @@ body {
 }
 
 .fast-cat { color: #4ade80; }
-.normal-cat { color: #fbbf24; }
+.normal-cat { color: #60a5fa; }
 .slow-cat { color: #f87171; }
 
 .usb-card {
@@ -412,22 +412,35 @@ body {
 
 .speed-indicator {
     margin-top: 0.5rem;
-    padding: 0.5rem;
+    padding: 0.75rem;
     border-radius: 6px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.25rem;
     background: rgba(0, 0, 0, 0.3);
 }
 
+.speed-indicator span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 .speed-indicator.fast { border-left: 3px solid #4ade80; }
-.speed-indicator.normal { border-left: 3px solid #fbbf24; }
+.speed-indicator.normal { border-left: 3px solid #60a5fa; }
 .speed-indicator.slow { border-left: 3px solid #f87171; }
 
 .speed-indicator strong {
-    font-size: 0.95rem;
-    color: var(--text-main);
+    font-size: 1.15rem;
+    font-weight: 700;
 }
+
+.speed-indicator.fast strong { color: #4ade80; }
+.speed-indicator.normal strong { color: #60a5fa; }
+.speed-indicator.slow strong { color: #f87171; }
 
 
 .hidden {
