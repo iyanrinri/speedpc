@@ -9,6 +9,7 @@ const drivelist = require('drivelist');
 const { exec } = require('child_process');
 const util = require('util');
 const os = require('os');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const db = require('./db');
 
 const execAsync = util.promisify(exec);
@@ -16,6 +17,14 @@ const execAsync = util.promisify(exec);
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+
+// Proxy Glances to bypass HTTPS Mixed Content issues
+app.use('/glances', createProxyMiddleware({ 
+    target: 'http://127.0.0.1:61208', 
+    changeOrigin: true,
+    pathRewrite: { '^/glances': '' },
+    ws: true // Proxy websockets if Glances uses them
+}));
 
 // Use port 8081 to avoid conflicts with existing services
 const PORT = process.env.PORT || 8081;
@@ -48,9 +57,6 @@ function saveCache(cache) {
 }
 
 async function testDriveSpeed(mountPath, device) {
-    const testFileSize = 50 * 1024 * 1024; // 50MB
-    const tempFile = path.join(mountPath, 'speedtest.tmp');
-    let writeSpeed = 0;
     let readSpeed = 0;
 
     if (process.platform === 'linux') {
@@ -74,33 +80,8 @@ async function testDriveSpeed(mountPath, device) {
         }
     }
 
-    try {
-        const buffer = crypto.randomBytes(testFileSize);
-        const startWrite = process.hrtime.bigint();
-        fs.writeFileSync(tempFile, buffer);
-        const endWrite = process.hrtime.bigint();
-        const writeTimeSec = Number(endWrite - startWrite) / 1e9;
-        writeSpeed = (testFileSize / 1024 / 1024) / writeTimeSec;
-
-        if (process.platform !== 'linux') {
-            const startRead = process.hrtime.bigint();
-            fs.readFileSync(tempFile);
-            const endRead = process.hrtime.bigint();
-            const readTimeSec = Number(endRead - startRead) / 1e9;
-            readSpeed = (testFileSize / 1024 / 1024) / readTimeSec;
-        }
-    } catch (e) {
-        console.error(`Failed to test write speed on ${mountPath}:`, e.message);
-    } finally {
-        if (fs.existsSync(tempFile)) {
-            try {
-                fs.unlinkSync(tempFile);
-            } catch (e) { }
-        }
-    }
-
     return {
-        writeSpeed: writeSpeed.toFixed(2),
+        writeSpeed: "0.00", // Write test removed per user request
         readSpeed: readSpeed.toFixed(2)
     };
 }

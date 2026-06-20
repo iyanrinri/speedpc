@@ -19,11 +19,9 @@ navLinks.forEach(link => {
     });
 });
 
-// Dynamically set Glances iframe URL based on the current host
+// Dynamically set Glances iframe URL via our internal proxy
 const glancesFrame = document.getElementById('glances-frame');
-const host = window.location.hostname;
-const protocol = window.location.protocol;
-glancesFrame.src = `${protocol}//${host}:61208`;
+glancesFrame.src = '/glances/';
 
 // ==================== NETWORK CHART ====================
 const ctx = document.getElementById('trafficChart').getContext('2d');
@@ -121,25 +119,60 @@ function renderUsbList(drives) {
         return;
     }
 
-    usbListEl.innerHTML = drives.map(drive => `
-        <div class="usb-item">
-            <div class="usb-header">
-                <span class="usb-title"><i class="fa-brands fa-usb"></i> ${drive.name} (${drive.label})</span>
-                <span class="usb-capacity">${drive.capacity}</span>
-            </div>
-            <div class="usb-speeds">
-                <div class="usb-speed-box">
-                    <span class="speed-label">Read Speed</span>
-                    <span class="speed-val rx-color">${drive.readSpeed} MB/s</span>
+    let fastDrives = [];
+    let normalDrives = [];
+    let slowDrives = [];
+
+    drives.forEach(drive => {
+        let speed = parseFloat(drive.readSpeed) || 0;
+        let cardHtml = `
+            <div class="usb-card">
+                <div class="usb-header">
+                    <i class="fa-solid fa-usb"></i>
+                    <div>
+                        <div class="usb-name">${drive.name || 'Unknown Device'}</div>
+                        <div class="usb-label">${drive.label || 'No Label'}</div>
+                    </div>
                 </div>
-                <div class="usb-speed-box">
-                    <span class="speed-label">Write Speed</span>
-                    <span class="speed-val tx-color">${drive.writeSpeed} MB/s</span>
+                <div class="usb-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Size</span>
+                        <span class="detail-value">${drive.size}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Mount</span>
+                        <span class="detail-value" title="${drive.mountPath}">${drive.mountPath.length > 15 ? drive.mountPath.substring(0, 15) + '...' : drive.mountPath}</span>
+                    </div>
+                    <div class="speed-indicator ${speed >= 60 ? 'fast' : (speed >= 20 ? 'normal' : 'slow')}">
+                        <span>Read Speed</span>
+                        <strong>${drive.readSpeed} MB/s</strong>
+                    </div>
                 </div>
             </div>
-            <div class="usb-last-updated">Last tested: ${new Date(drive.lastUpdated).toLocaleString()}</div>
-        </div>
-    `).join('');
+        `;
+
+        if (speed >= 60) {
+            fastDrives.push(cardHtml);
+        } else if (speed >= 20) {
+            normalDrives.push(cardHtml);
+        } else {
+            slowDrives.push(cardHtml);
+        }
+    });
+
+    let html = '';
+    
+    if (fastDrives.length > 0) {
+        html += `<h3 class="speed-category fast-cat">🚀 Fast Drives (60+ MB/s)</h3><div class="usb-grid">${fastDrives.join('')}</div>`;
+    }
+    if (normalDrives.length > 0) {
+        html += `<h3 class="speed-category normal-cat">⚡ Normal Drives (20-59 MB/s)</h3><div class="usb-grid">${normalDrives.join('')}</div>`;
+    }
+    if (slowDrives.length > 0) {
+        html += `<h3 class="speed-category slow-cat">🐢 Slow Drives (< 20 MB/s)</h3><div class="usb-grid">${slowDrives.join('')}</div>`;
+    }
+
+    usbListEl.innerHTML = html;
 }
 
 function filterAndRender() {
