@@ -68,20 +68,26 @@ module.exports = {
     },
 
     /**
-     * Menghapus riwayat data yang lebih tua dari 2 hari (48 jam).
+     * Menghapus riwayat data yang lebih tua dari 1 hari (24 jam) dan me-reclaim space.
      */
     pruneHistory() {
         return new Promise((resolve, reject) => {
-            const cutoff = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 hari dalam ms
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000; // 24 jam dalam ms
             const query = `DELETE FROM traffic WHERE t < ?`;
             db.run(query, [cutoff], function(err) {
                 if (err) {
                     reject(err);
                 } else {
-                    if (this.changes > 0) {
-                        console.log(`🧹 Auto-Cleanup: Berhasil menghapus ${this.changes} baris data lama (> 2 hari).`);
+                    const deletedCount = this.changes;
+                    if (deletedCount > 0) {
+                        console.log(`🧹 Auto-Cleanup: Berhasil menghapus ${deletedCount} baris data lama (> 24 jam).`);
+                        // Vacuum database to reclaim space
+                        db.run("VACUUM", (err) => {
+                            if (err) console.error("❌ Gagal melakukan VACUUM database:", err.message);
+                            else console.log("📦 Database berhasil di-VACUUM.");
+                        });
                     }
-                    resolve(this.changes);
+                    resolve(deletedCount);
                 }
             });
         });

@@ -35,6 +35,7 @@ const trafficChart = new Chart(ctx, {
                 backgroundColor: 'rgba(14, 165, 233, 0.1)',
                 borderWidth: 2,
                 pointRadius: 0,
+                pointHoverRadius: 4,
                 fill: true,
                 tension: 0.4,
                 data: []
@@ -45,6 +46,7 @@ const trafficChart = new Chart(ctx, {
                 backgroundColor: 'rgba(139, 92, 246, 0.1)',
                 borderWidth: 2,
                 pointRadius: 0,
+                pointHoverRadius: 4,
                 fill: true,
                 tension: 0.4,
                 data: []
@@ -55,9 +57,17 @@ const trafficChart = new Chart(ctx, {
         responsive: true,
         maintainAspectRatio: false,
         animation: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
         plugins: {
             legend: {
                 labels: { color: '#f8fafc' }
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
             }
         },
         scales: {
@@ -65,7 +75,10 @@ const trafficChart = new Chart(ctx, {
                 type: 'time',
                 time: { tooltipFormat: 'HH:mm:ss' },
                 grid: { color: 'rgba(255,255,255,0.05)' },
-                ticks: { color: '#94a3b8' }
+                ticks: { 
+                    color: '#94a3b8',
+                    maxTicksLimit: 6
+                }
             },
             y: {
                 beginAtZero: true,
@@ -81,12 +94,30 @@ const trafficChart = new Chart(ctx, {
     }
 });
 
+let currentTimeWindow = 5 * 60 * 1000; // default 5 minutes
+
 function formatSpeed(bytesPerSec) {
     if (bytesPerSec === 0) return '0 MB/s';
     const mbps = bytesPerSec / (1024 * 1024);
     return mbps.toFixed(2) + ' MB/s';
 }
 
+// Handle incoming historical data
+socket.on('history-data', (data) => {
+    // data.points format: { t, rx, tx, load_1, load_5, load_15 }
+    trafficChart.data.datasets[0].data = [];
+    trafficChart.data.datasets[1].data = [];
+    
+    data.points.forEach(pt => {
+        const time = new Date(pt.t);
+        trafficChart.data.datasets[0].data.push({ x: time, y: pt.rx });
+        trafficChart.data.datasets[1].data.push({ x: time, y: pt.tx });
+    });
+    
+    trafficChart.update('none');
+});
+
+// Handle live real-time data ticks
 socket.on('traffic-data', (data) => {
     document.getElementById('rx-speed').textContent = formatSpeed(data.rx);
     document.getElementById('tx-speed').textContent = formatSpeed(data.tx);
@@ -95,14 +126,41 @@ socket.on('traffic-data', (data) => {
     trafficChart.data.datasets[0].data.push({ x: now, y: data.rx });
     trafficChart.data.datasets[1].data.push({ x: now, y: data.tx });
 
-    const timeWindow = 60 * 1000; // 1 minute
-    const cutoff = now.getTime() - timeWindow;
+    const cutoff = now.getTime() - currentTimeWindow;
     trafficChart.data.datasets.forEach(dataset => {
         dataset.data = dataset.data.filter(point => point.x.getTime() > cutoff);
     });
 
     trafficChart.update('none');
 });
+
+// Chart Filter Logic
+const filterBtns = document.querySelectorAll('.filter-btn');
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Update UI
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Calculate new time window
+        const range = btn.getAttribute('data-range');
+        let ms = 5 * 60 * 1000;
+        if (range === '5m') ms = 5 * 60 * 1000;
+        if (range === '15m') ms = 15 * 60 * 1000;
+        if (range === '1h') ms = 60 * 60 * 1000;
+        if (range === '6h') ms = 6 * 60 * 60 * 1000;
+        if (range === '12h') ms = 12 * 60 * 60 * 1000;
+        if (range === '24h') ms = 24 * 60 * 60 * 1000;
+        
+        currentTimeWindow = ms;
+        
+        // Request history from backend
+        socket.emit('request-history', { rangeMs: ms, range: range });
+    });
+});
+
+// Request initial data on load
+socket.emit('request-history', { rangeMs: currentTimeWindow, range: '5m' });
 
 // ==================== USB DEVICES ====================
 const usbListEl = document.getElementById('usb-list');
