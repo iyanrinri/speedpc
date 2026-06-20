@@ -131,18 +131,9 @@ function renderUsbList(drives) {
                     <i class="fa-solid fa-usb"></i>
                     <div>
                         <div class="usb-name" title="${drive.label}">${drive.label || 'Unnamed USB'}</div>
-                        <div class="usb-label" title="${drive.name}">${drive.name || 'Generic Device'}</div>
                     </div>
                 </div>
                 <div class="usb-details">
-                    <div class="detail-row">
-                        <span class="detail-label">Size</span>
-                        <span class="detail-value">${drive.size}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Mount</span>
-                        <span class="detail-value" title="${drive.mountPath}">${drive.mountPath.length > 15 ? drive.mountPath.substring(0, 15) + '...' : drive.mountPath}</span>
-                    </div>
                     <div class="speed-indicator ${speed >= 60 ? 'fast' : (speed >= 20 ? 'normal' : 'slow')}">
                         <span>Read Speed</span>
                         <strong>${drive.readSpeed} MB/s</strong>
@@ -163,13 +154,13 @@ function renderUsbList(drives) {
     let html = '';
     
     if (fastDrives.length > 0) {
-        html += `<h3 class="speed-category fast-cat">🚀 Fast Drives (60+ MB/s)</h3><div class="usb-grid">${fastDrives.join('')}</div>`;
+        html += `<h3 class="speed-category fast-cat"><i class="fa-solid fa-rocket"></i> Fast Drives (60+ MB/s)</h3><div class="usb-grid">${fastDrives.join('')}</div>`;
     }
     if (normalDrives.length > 0) {
-        html += `<h3 class="speed-category normal-cat">⚡ Normal Drives (20-59 MB/s)</h3><div class="usb-grid">${normalDrives.join('')}</div>`;
+        html += `<h3 class="speed-category normal-cat"><i class="fa-solid fa-bolt"></i> Normal Drives (20-59 MB/s)</h3><div class="usb-grid">${normalDrives.join('')}</div>`;
     }
     if (slowDrives.length > 0) {
-        html += `<h3 class="speed-category slow-cat">🐢 Slow Drives (< 20 MB/s)</h3><div class="usb-grid">${slowDrives.join('')}</div>`;
+        html += `<h3 class="speed-category slow-cat"><i class="fa-solid fa-triangle-exclamation"></i> Slow Drives (< 20 MB/s)</h3><div class="usb-grid">${slowDrives.join('')}</div>`;
     }
 
     usbListEl.innerHTML = html;
