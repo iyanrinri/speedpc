@@ -130,8 +130,8 @@ function renderUsbList(drives) {
                 <div class="usb-header">
                     <i class="fa-solid fa-usb"></i>
                     <div>
-                        <div class="usb-name">${drive.name || 'Unknown Device'}</div>
-                        <div class="usb-label">${drive.label || 'No Label'}</div>
+                        <div class="usb-name" title="${drive.label}">${drive.label || 'Unnamed USB'}</div>
+                        <div class="usb-label" title="${drive.name}">${drive.name || 'Generic Device'}</div>
                     </div>
                 </div>
                 <div class="usb-details">
