@@ -73,7 +73,15 @@ const trafficChart = new Chart(ctx, {
         scales: {
             x: {
                 type: 'time',
-                time: { tooltipFormat: 'HH:mm:ss' },
+                time: { 
+                    tooltipFormat: 'HH:mm:ss',
+                    displayFormats: {
+                        millisecond: 'HH:mm:ss.SSS',
+                        second: 'HH:mm:ss',
+                        minute: 'HH:mm',
+                        hour: 'HH:mm'
+                    }
+                },
                 grid: { color: 'rgba(255,255,255,0.05)' },
                 ticks: { 
                     color: '#94a3b8',
