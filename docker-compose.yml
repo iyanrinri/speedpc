@@ -23,6 +23,7 @@ services:
     network_mode: host
     privileged: true
     volumes:
+      - ./unified-dashboard/data:/app/data
       - /dev:/dev
       - /media:/media:rshared
       - /mnt:/mnt:rshared

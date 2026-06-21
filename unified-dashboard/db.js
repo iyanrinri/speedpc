@@ -1,12 +1,18 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-const dbPath = path.join(__dirname, 'traffic.db');
+const dataDir = path.join(__dirname, 'data');
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir);
+}
+
+const dbPath = path.join(dataDir, 'traffic.db');
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('❌ Gagal membuka database SQLite:', err.message);
     } else {
-        console.log('💾 Hubungan ke SQLite database (traffic.db) berhasil dibuka.');
+        console.log('💾 Hubungan ke SQLite database (traffic.db) berhasil dibuka di folder data.');
     }
 });
 
