@@ -68,6 +68,21 @@ const trafficChart = new Chart(ctx, {
             tooltip: {
                 mode: 'index',
                 intersect: false,
+                callbacks: {
+                    label: function(context) {
+                        var val = context.parsed.y || 0;
+                        function getFormatted(v, isBytes) {
+                            if (v <= 0) return isBytes ? '0.00 Byte' : '0.00 bit';
+                            var k = isBytes ? 1024 : 1000;
+                            var sizes = isBytes ? ['Byte', 'KByte', 'MByte', 'GByte', 'TByte'] : ['bit', 'Kbit', 'Mbit', 'Gbit', 'Tbit'];
+                            var v2 = isBytes ? v : v * 8;
+                            var i = Math.floor(Math.log(v2) / Math.log(k));
+                            var safeIndex = Math.min(i, sizes.length - 1);
+                            return (v2 / Math.pow(k, safeIndex)).toFixed(2) + ' ' + sizes[safeIndex];
+                        }
+                        return ' ' + context.dataset.label + ': ' + getFormatted(val, false) + ' (' + getFormatted(val, true) + ')';
+                    }
+                }
             }
         },
         scales: {
