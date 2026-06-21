@@ -786,15 +786,23 @@
                     displayColors: true,
                     callbacks: {
                         label: function(context) {
-                            // Read raw Bytes from the custom _rawBytes array stored on the dataset
                             var rawArr = context.dataset._rawBytes;
                             var rawVal = rawArr && rawArr[context.dataIndex] !== undefined ? rawArr[context.dataIndex] : 0;
 
-                            // Always show BOTH units in the tooltip
-                            var speedBytes = formatSpeed(rawVal, 'Bytes');
-                            var speedBits  = formatSpeed(rawVal, 'bits');
+                            function getFormatted(val, isBytes) {
+                                if (val <= 0) return isBytes ? '0.00 Byte' : '0.00 bit';
+                                var k = isBytes ? 1024 : 1000;
+                                var sizes = isBytes ? ['Byte', 'KByte', 'MByte', 'GByte', 'TByte'] : ['bit', 'Kbit', 'Mbit', 'Gbit', 'Tbit'];
+                                var v = isBytes ? val : val * 8;
+                                var i = Math.floor(Math.log(v) / Math.log(k));
+                                var safeIndex = Math.min(i, sizes.length - 1);
+                                return (v / Math.pow(k, safeIndex)).toFixed(2) + ' ' + sizes[safeIndex];
+                            }
 
-                            return ' ' + context.dataset.label + ': ' + speedBytes.display + '  (' + speedBits.display + ')';
+                            var strBits = getFormatted(rawVal, false);
+                            var strBytes = getFormatted(rawVal, true);
+
+                            return ' ' + context.dataset.label + ': ' + strBits + ' (' + strBytes + ')';
                         }
                     }
                 }
